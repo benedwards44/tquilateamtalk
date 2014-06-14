@@ -12,4 +12,8 @@ Use a deployment tool (Force.com Migration/Ant or Force.com IDE) to deploy the c
 
 ## Enter app id and app name
 
-Both the ttt_ChatRoom and ttt_VideoConference pages require you to add in your app id and app name, which was created when you set up your GoInstant app.
+There is a custom setting that holds the app id and application name used across the various applications. Add a record to the Tquila Team Talk Settings custom setting and input the app id and app name generated when you created you app in GoInstant
+
+## Ready to go!
+
+Once you have completed the above, you are ready to go. Create a Custom Tab for each of the VisualForce pages you wish to use, or go to them directly by navigating to /apex/ttt_ChatRoom or /apex/ttt_VideoConference
