@@ -6,6 +6,10 @@
 		<name>ApexPage</name>
 	</types>
 	<types>
+		<members>ttt_Settings__c</members>
+		<name>CustomObject</name>
+	</types>
+	<types>
 		<members>ttt_Resources</members>
 		<name>StaticResource</name>
 	</types>

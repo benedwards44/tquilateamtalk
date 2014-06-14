@@ -63,8 +63,8 @@
             var _ = window._;
             var goinstant = window.goinstant;
 
-            var application_id = '5c8eef6641d3';
-            var application_name = 'TquilaTeamTalk';
+            var application_id = '{!$Setup.ttt_Settings__c.App_Id__c}';
+            var application_name = '{!$Setup.ttt_Settings__c.App_Name__c}';
 
             var url = 'https://goinstant.net/' + application_id + '/' + application_name;
 
