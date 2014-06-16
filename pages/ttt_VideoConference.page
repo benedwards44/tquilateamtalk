@@ -67,7 +67,7 @@
 		    {
 		      	url: url,
 		      	room: room_name,
-		      	token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ3ZWJydGMuZ29pbnN0YW50LmNvbS9hdXRoIiwic3ViIjoid2VicnRjZGVtbzo4ZDIyZDFmOGM5YWM2ZGZkNzkyMSIsImRuIjoiQmVuIEVkd2FyZHMiLCJhdWQiOiJnb2luc3RhbnQubmV0In0.15f5xGvkF-dq3QuQlqsqxhtg3QeSl7ji-k9dJ2qyYt8',
+		      	token: '{!$Setup.ttt_Settings__c.App_Token__c}',
 		      	host: room_name,
 		      	webrtcContainer: $('#webrtc-container')[0],
 		      	webrtcList: $('#webrtc-list')[0],

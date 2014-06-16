@@ -21,5 +21,12 @@
         <type>Text</type>
         <unique>false</unique>
     </fields>
+    <fields>
+        <fullName>App_Token__c</fullName>
+        <externalId>false</externalId>
+        <label>App Token</label>
+        <required>false</required>
+        <type>TextArea</type>
+    </fields>
     <label>Tquila Team Talk Settings</label>
 </CustomObject>
