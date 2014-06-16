@@ -1,6 +1,6 @@
 <apex:page docType="html-5.0" title="Chat Room" showHeader="false" standardStylesheets="false">
 
-    <apex:stylesheet value="{!URLFOR($Resource.ttt_Resources, 'css/styles.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.ttt_Resources, 'chatroom/css/styles.css')}" />
     <apex:stylesheet value="https://cdn.goinstant.net/widgets/user-list/latest/user-list.css" />
 
     <div class="container">
@@ -10,7 +10,9 @@
         <div class="chat-room">
 
         	<div class="messages-wrapper">
-                <ul class="messages"></ul>
+                <ul class="messages">
+                    <!-- list of messages are put in here -->
+                </ul>
         	</div>
 
             <div class="input">
@@ -22,27 +24,31 @@
         </div>
 
         <div class="room-list">
-            <h3>Other rooms</h3>
-            <ul class="all-rooms">
-                <li><a href="#">Sales</a></li>
-                <li><a href="#">IT</a></li>
-                <li><a href="#">Support</a></li>
 
+            <h3>Other rooms</h3>
+
+            <ul class="all-rooms">
+                <!-- list of rooms is put in here -->
             </ul>
 
             <div class="create_room">
                 <h4>Create new room</h4>
                 <input type="text" class="room-name" placeholder="Room Name..." />
                 <a href="javascript:createRoom();" class="create-room-button">Create</a>
-            </div>  
+            </div> 
+
         </div> 
 
         <div class="gi-override gi-userlist">
+
             <div class="gi-options"></div>
+
             <ul class="gi-inner">
                 <!-- User List goes inside here -->
             </ul>
+
             <div class="gi-collapse"></div>
+
         </div>
 
     </div>
@@ -90,9 +96,8 @@
 
             connect.then(function(result) 
             {
-
                 conn = result.connection;
-                room = setRoom(result, result.rooms);
+                room = setRoom(result.rooms);
                 listRooms(room, result.rooms);
 
                 $('.room_name').text(room.name);
@@ -173,7 +178,7 @@
                 $li.addClass('message');
 
                 var $img = $('<div class="avatar"><img /></div>').find('img');
-                $img.attr('src', message.avatar || '/resource/ttt_Resources/img/avatar.png');
+                $img.attr('src', message.avatar || '/resource/ttt_Resources/chatroom/img/avatar.png');
 
                 var $name = $('<div class="user-name"></div>').text(message.name);
                 var $message = $('<div class="user-message"></div>').text(message.text);
@@ -218,7 +223,7 @@
                 messagesKey.add(message, options);
             }
 
-            function setRoom(connection, rooms)
+            function setRoom(rooms)
             {
                 var theRoom;
 
@@ -241,8 +246,7 @@
                 // No room found, create a new one
                 if (theRoom == null)
                 {
-                    theRoom = connection.room(roomName);
-                    console.log(theRoom);
+                    theRoom = conn.room(roomName);
                     theRoom.join(function(err) 
                     {
                         if (err) 
@@ -257,11 +261,9 @@
 
             function listRooms(current_room, rooms)
             {
-                /*
                 var countRooms = 0;
                 _.each(rooms, function(room) 
                 {
-                    console.log(room);
                     if (room.name != current_room.name)
                     {
                         $('.all-rooms').append('<li><a href="/apex/ttt_ChatRoom?roomName=' + room.name + '">' + room.name + '</a></li>');
@@ -273,7 +275,6 @@
                 {
                     $('.all-rooms').html('No other rooms to display.');
                 }
-                */
             }
 
             function scrollBottom() 

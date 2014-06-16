@@ -1,198 +1,108 @@
-<apex:page docType="html-5.0" title="Chat Room">
+<apex:page docType="html-5.0" title="Video Conference" showHeader="false" standardStylesheets="false">
 
+	<apex:stylesheet value="https://cdn.goinstant.net/widgets/webrtc/latest/webrtc.css" />
+	<apex:stylesheet value="https://cdn.goinstant.net/widgets/chat/latest/chat.css" />
+	<apex:stylesheet value="{!URLFOR($Resource.ttt_Resources, 'videoconference/css/layout.css')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.ttt_Resources, 'videoconference/css/styles.css')}" />
 
-	<apex:sectionHeader title="Chat Room" subtitle="Team Talk" />
+	<apex:includeScript value="{!URLFOR($Resource.ttt_Resources, 'videoconference/js/async.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.ttt_Resources, 'videoconference/js/lodash.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.ttt_Resources, 'videoconference/js/jquery-1.10.2.min.js')}" />
+	<apex:includeScript value="{!URLFOR($Resource.ttt_Resources, 'videoconference/js/useragent.js')}" />
 
-	<div class="container">
+	<div class="main">
+		<div class="leave-modal">
+	    	<p>The room owner has left the conference.</p>
+	  	</div>
 
-      	<h1>chat!</h1>
+	  	<section class="cf">
 
-      	<div class="messages-wrapper">
-        	<ul class="messages"></ul>
-      	</div>
+	    	<div id="webrtc-container" class="webrtc-container tab-contents current"></div>
 
-      	<div class="input">
-        	<div class="avatar"></div>
-        	<input type="text" class="name" readonly="1" />
-        	<input type="text" class="text" placeholder="Type a message!" />
-      	</div>
+	    	<aside id="mobile-chat" class="tab-contents">
 
-    </div>
-	 
+	      		<div class="join-url desktop">
+	        		<span>Invite</span>
+	        		<input type="text" class="invite_url" readonly="1" />
+	      		</div>
+
+	      		<div id="chat-container" class="chat-container"></div>
+
+	    	</aside>
+
+	  	</section>
+
+	  	<div id="webrtc-list" class="webrtc-list mobile-tab-content"></div>
+
+	</div>
+
 	<script src="https://cdn.goinstant.net/v1/platform.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-    <script>
-    	/* jshint browser:true */
-		$(function() {
-		'use strict';
+	<script src="https://cdn.goinstant.net/widgets/webrtc/latest/webrtc.min.js"></script>
+	<script src="https://cdn.goinstant.net/widgets/chat/latest/chat.min.js"></script>
+	<script src="https://cdn.goinstant.net/widgets/user-colors/latest/user-colors.min.js"></script>
+	<script src="{!URLFOR($Resource.ttt_Resources, 'videoconference/js/demo.js')}"></script>
+	<script>
+		$(document).ready(function() 
+		{
+			
 
-		  var $ = window.$;
-		  var _ = window._;
-		  var goinstant = window.goinstant;
+			var application_id = '{!$Setup.ttt_Settings__c.App_Id__c}';
+            var application_name = '{!$Setup.ttt_Settings__c.App_Name__c}';
 
-		  var url = 'CONNECT_URL_HERE';
+            var url = 'https://goinstant.net/' + application_id + '/' + application_name;
 
-		  var conn;
-		  var room;
-		  var user;
-		  var messagesKey;
+            var auth_url = 'https://auth.goinstant.net/begin?' +
+                                    'account='+ application_id + 
+                                    '&app=' + application_name + 
+                                    '&providerName=forcedotcom' + 
+                                    '&returnTo=' + window.location.href;
 
-		  var $auth = $('.auth');
-		  var $avatar = $('.avatar');
-		  var $name = $('.name');
-		  var $text = $('.text');
-		  var $messages = $('.messages');
+            var room_name = '{!$CurrentPage.parameters.roomName}';
+			if (room_name === '')
+			{
+				room_name = 'lobby'
+			}
 
-		  var connect = goinstant.connect(url);
+		    var config = 
+		    {
+		      	url: url,
+		      	room: room_name,
+		      	token: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ3ZWJydGMuZ29pbnN0YW50LmNvbS9hdXRoIiwic3ViIjoid2VicnRjZGVtbzo4ZDIyZDFmOGM5YWM2ZGZkNzkyMSIsImRuIjoiQmVuIEVkd2FyZHMiLCJhdWQiOiJnb2luc3RhbnQubmV0In0.15f5xGvkF-dq3QuQlqsqxhtg3QeSl7ji-k9dJ2qyYt8',
+		      	host: room_name,
+		      	webrtcContainer: $('#webrtc-container')[0],
+		      	webrtcList: $('#webrtc-list')[0],
+		      	chatContainer: $('#chat-container')[0]
+		    };
 
-		  connect.then(function(result) {
-		    conn = result.connection;
-		    room = result.rooms[0];
-		    messagesKey = room.key('messages');
-
-		    return room.self().get();
-
-		  }).then(function(result) {
-		    user = result.value;
-
-		    if (conn.isGuest()) {
-		      displayLogin();
-
-		    } else {
-		      displayLogOut();
-		    }
-
-		    $name.val(user.displayName);
-
-		    if (user.avatarUrl) {
-
-		      var $img = $('<img />');
-		      $img.attr('src', user.avatarUrl);
-
-		      $avatar.append($img);
-		    }
-
-		    return messagesKey.get();
-
-		  }).then(function(result) {
-		    var messages = result.value;
-		    var ordered = _.keys(messages).sort();
-
-		    _.each(ordered, function(id) {
-		      addMessage(messages[id]);
+		    // Auto Copy
+		    $('.join-url input').on('click', function() {
+				this.select();
 		    });
 
-		  }).fin(function() {
-		    var options = {
-		      local: true
-		    };
+		    var supported = goinstant.widgets.WebRTC.supported;
 
-		    messagesKey.on('add', options, addMessage);
-		    $text.on('keydown', handleMessage);
-		  });
-
-		  function addMessage(message, context) {
-		    var $li = $('<li></li>');
-		    $li.addClass('message');
-
-		    var $img = $('<div class="avatar"><img /></div>').find('img');
-		    $img.attr('src', message.avatar || '/img/avatar.png');
-
-		    var $name = $('<div class="user-name"></div>').text(message.name);
-		    var $message = $('<div class="user-message"></div>').text(message.text);
-
-		    $li.append($img);
-		    $li.append($name);
-		    $li.append($message);
-		    $messages.append($li);
-
-		    _scrollBottom();
-
-		    if (context && context.userId === user.id) {
-		      $text.val('');
-		    }
-		  }
-
-		  function handleMessage(event) {
-		    if (event.which !== 13) {
-		      return;
+		    if (!supported) 
+		    {
+				var error = 'Your browser does not support WebRTC. For an up-to-date' +
+		                  'list of supported browsers please see www.webrtc.org';
+		      	return;
 		    }
 
-		    var message = {
-		      name: $name.val(),
-		      text: $text.val(),
-		      avatar: user.avatarUrl
-		    };
-
-		    if (message.name === '' || message.text === '') {
-		      return;
-		    }
-
-		    var options = {
-		      expire: 48 * 60 * 60 * 1000 // 48 hours
-		    };
-
-		    messagesKey.add(message, options);
-		  }
-
-		  function displayLogin() {
-		    var $list = $('<ul></ul>');
-		    var providers = {
-		      Twitter: 'twitter',
-		      GitHub: 'github',
-		      Salesforce: 'forcedotcom',
-		      Google: 'google',
-		      Facebook: 'facebook'
-		    };
-
-		    _.each(providers, function(apiId, provider) {
-		      var $li = $('<li></li>');
-		      $li.attr('class', apiId);
-
-		      var $link = $('<a><span></span></a>');
-		      $link.find('span').text(provider);
-
-		      $link.attr('href', conn.loginUrl(apiId));
-
-		      $link.prepend('<span class="icon"></span>');
-		      $li.append($link);
-
-		      $list.append($li);
+		    // Setup Demo
+		    var Demo = window.goinstant.WebRTCDemo;
+		    var demo = new Demo(config);
+		    demo.initialize(function(err) 
+		    {
+		      	if (err) 
+		      	{
+		        	throw err;
+		      	}
 		    });
 
-		    $auth.append('<h3>Login with</h3>');
-		    $auth.append($list);
-		    $auth.addClass('login');
-		  }
+		    $('.invite_url').val('https://' + window.location.host + '/apex/ttt_VideoConference?roomName={!$CurrentPage.parameters.roomName}');
 
-		  function displayLogOut() {
-		    var $provider = $('<div><span class="icon"></span></div>');
-		    $provider.addClass('provider-icon');
-		    $provider.addClass(user.provider);
-
-		    var $link = $('<a><span>Logout</span></a>');
-
-		    $link.attr('href', conn.logoutUrl());
-
-		    $link.attr('class', 'button');
-		    $link.prepend('<span class="icon"></span>');
-
-		    $auth.append($provider);
-		    $auth.append($link);
-		    $auth.addClass('logout');
-		  }
-
-		  function scrollBottom() {
-		    var properties = {
-		      scrollTop: $messages[0].scrollHeight
-		    };
-
-		    $messages.animate(properties, 'slow');
-		  }
-
-		  var _scrollBottom = _.debounce(scrollBottom, 100);
 		});
-    </script>
+
+	</script>
 	
 </apex:page>
